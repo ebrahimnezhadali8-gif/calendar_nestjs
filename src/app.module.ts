@@ -12,15 +12,15 @@ import { join } from 'path';
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (ConfigService : ConfigService) =>({
-        type : 'postgres',
-        host : ConfigService.get('DB_HOST'),
-        port : +ConfigService.get('DB_PORT'),
-        username : ConfigService.get('DB_USERNAME'),
-        password : ConfigService.get('DB_PASSWORD'),
-        database : ConfigService.get('DB_NAME'),
-        entities : [join(process.cwd() , 'dist/**/*.entity.js')],
-        // do not use synchronize : true in real project 
+      useFactory: (ConfigService: ConfigService) => ({
+        type: 'postgres',
+        host: ConfigService.get('DB_HOST'),
+        port: +ConfigService.get('DB_PORT'),
+        username: ConfigService.get('DB_USERNAME'),
+        password: ConfigService.get('DB_PASSWORD'),
+        database: ConfigService.get('DB_NAME'),
+        entities: [join(process.cwd(), 'dist/**/*.entity.js')],
+        // do not use synchronize : true in real project
         synchronize: true,
       }),
     }),

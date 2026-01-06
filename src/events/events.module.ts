@@ -8,6 +8,6 @@ import { EventRepository } from './events.repository';
 @Module({
   imports: [TypeOrmModule.forFeature([Event])],
   controllers: [EventsController],
-  providers: [EventsService ,EventRepository],
+  providers: [EventsService, EventRepository],
 })
 export class EventsModule {}

@@ -1,8 +1,18 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+} from '@nestjs/common';
 import { EventsService } from './events.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { DeleteEventDto } from './dto/delete-event.dto';
+import { ListEventDto } from './dto/list-event.dto';
 
 @Controller('events')
 export class EventsController {
@@ -23,9 +33,9 @@ export class EventsController {
     return this.eventsService.removeEvent(dto.start);
   }
 
-  @Get('day')
-  listDay() {
-    return this.eventsService.findAll();
+  @Get()
+  list(@Query() dto: ListEventDto) {
+    return this.eventsService.listEvents(dto);
   }
 
   @Get(':id')

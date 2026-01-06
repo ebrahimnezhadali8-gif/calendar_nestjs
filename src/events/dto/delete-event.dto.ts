@@ -1,7 +1,7 @@
-import { IsDateString, IsNotEmpty } from "class-validator";
+import { IsDateString, IsNotEmpty } from 'class-validator';
 
 export class DeleteEventDto {
-    @IsNotEmpty()
-    @IsDateString()
-    start: string;
+  @IsNotEmpty()
+  @IsDateString()
+  start: string;
 }
