@@ -33,7 +33,7 @@ All requests send data in JSON format.
 - DELETE /events?start=<ISO-date>
 4. List Events
 - GET /events?range=<day|week|month>&date=<YYYY-MM-DD>&month=<YYYY-MM>
-## Params:
+- Params:
 - range = day, week, or month
 - date = required for day range
 - month = required for month range
