@@ -74,4 +74,14 @@ export class EventRepository {
       .orderBy('event.start', 'ASC')
       .getMany();
   }
+  async searchEvent(q: string): Promise<Event[]> {
+    return this.repo
+      .createQueryBuilder('event')
+      .where('(event.title ILIKE :q OR event.description ILIKE :q)', {
+        q: `%${q}%`,
+      })
+      .andWhere('event.deletedAt IS NULL')
+      .orderBy('event.start', 'ASC')
+      .getMany();
+  }
 }

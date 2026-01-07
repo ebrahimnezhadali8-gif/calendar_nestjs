@@ -7,6 +7,7 @@ import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { EventRepository } from './events.repository';
 import { EventRange, ListEventDto } from './dto/list-event.dto';
+import { SearchEventDto } from './dto/search-event.dto';
 
 @Injectable()
 export class EventsService {
@@ -87,7 +88,7 @@ export class EventsService {
     return this.eventRepo.findDate(startDate, endDate);
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} event`;
+  searchEvents(dto: SearchEventDto) {
+    return this.eventRepo.searchEvent(dto.q);
   }
 }

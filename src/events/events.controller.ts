@@ -13,6 +13,7 @@ import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { DeleteEventDto } from './dto/delete-event.dto';
 import { ListEventDto } from './dto/list-event.dto';
+import { SearchEventDto } from './dto/search-event.dto';
 
 @Controller('events')
 export class EventsController {
@@ -38,13 +39,8 @@ export class EventsController {
     return this.eventsService.listEvents(dto);
   }
 
-  @Get(':id')
-  listWeek(@Param('id') id: string) {
-    return this.eventsService.findOne(+id);
-  }
-
-  @Get(':id')
-  listMonth(@Param('id') id: string) {
-    return this.eventsService.findOne(+id);
+  @Get('search')
+  searchList(@Query() dto: SearchEventDto) {
+    return this.eventsService.searchEvents(dto);
   }
 }
