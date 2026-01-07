@@ -8,6 +8,8 @@ import { UpdateEventDto } from './dto/update-event.dto';
 import { EventRepository } from './events.repository';
 import { EventRange, ListEventDto } from './dto/list-event.dto';
 import { SearchEventDto } from './dto/search-event.dto';
+import { ConflictEventDto } from './dto/conflict-event.dto';
+import { Event } from './entities/event.entity';
 
 @Injectable()
 export class EventsService {
@@ -90,5 +92,45 @@ export class EventsService {
 
   searchEvents(dto: SearchEventDto) {
     return this.eventRepo.searchEvent(dto.q);
+  }
+  //conflict Day
+  async listConflict( dto: ConflictEventDto) {
+    if (!dto.date) {
+      throw new BadRequestException('تاریخ الزامی است');
+    }
+    const startDate = new Date(`${dto.date}T00:00:00.000Z`);
+    const endDate = new Date(`${dto.date}T23:59:59.999Z`);
+
+    const events = await this.eventRepo.findDate(startDate , endDate);
+    console.log(events)
+    if(events.length === 0) {
+      throw new NotFoundException('هیچ رویداد دارای تداخلی یافت نشد');
+    }
+    events.sort((a,b)=> a.start.getTime() - b.start.getTime());
+    console.log('event : -> ', events)
+    const conflict: Event[][] = [];
+    let currentGroup: Event[] = [events[0]];
+    console.log("conflict : " ,conflict);
+    console.log("cuurrrrrrrr: " , currentGroup)
+
+    for (let i = 1 ; i < events.length; i++){
+      const prev = currentGroup[currentGroup.length-1];
+      const curr = events[i];
+
+      if(curr.start < prev.end){
+        currentGroup.push(curr);
+
+      } else{
+        if(currentGroup.length > 1){
+          conflict.push([...currentGroup]);
+          currentGroup = [curr];
+        }
+      }
+
+      if(currentGroup.length > 1)
+        conflict.push([...currentGroup]);
+
+      return conflict
+    }
   }
 }
