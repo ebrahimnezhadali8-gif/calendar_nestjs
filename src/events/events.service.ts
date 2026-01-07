@@ -8,9 +8,12 @@ import { UpdateEventDto } from './dto/update-event.dto';
 import { EventRepository } from './events.repository';
 import { EventRange, ListEventDto } from './dto/list-event.dto';
 import { SearchEventDto } from './dto/search-event.dto';
-import { ConflictEventDto } from './dto/conflict-event.dto';
+import {
+  ConflictEventDto,
+  ConflictEventReponseDto,
+} from './dto/conflict-event.dto';
 import { Event } from './entities/event.entity';
-
+import { EventReponseDto } from './dto/response-envent.dto';
 @Injectable()
 export class EventsService {
   constructor(private readonly eventRepo: EventRepository) {}
@@ -18,7 +21,6 @@ export class EventsService {
   //ADD
   async addEvent(dto: CreateEventDto) {
     const count = await this.eventRepo.countActiveEvent();
-    console.log(count);
     if (count >= 10000) {
       throw new BadRequestException('شما حداکثر رویداد خودتان رو گذاشتین');
     }
@@ -30,7 +32,8 @@ export class EventsService {
         'تاریخ پایان باید از تاریخ شروع بیشتر باشد!',
       );
     }
-    return this.eventRepo.createEvent(dto);
+    const event = await this.eventRepo.createEvent(dto);
+    return this.mapEvent(event);
   }
 
   //EDIT
@@ -39,7 +42,8 @@ export class EventsService {
     if (!exists) {
       throw new NotFoundException('رویداد یافت نشد');
     }
-    return this.eventRepo.updateEvent(id, dto);
+    const event = await this.eventRepo.updateEvent(id, dto);
+    return this.mapEvent(event);
   }
 
   //REMOVE
@@ -87,50 +91,73 @@ export class EventsService {
       default:
         throw new BadRequestException('نا معتبر است ');
     }
-    return this.eventRepo.findDate(startDate, endDate);
+    const events = await this.eventRepo.findDate(startDate, endDate);
+    return this.mapEvents(events);
   }
 
-  searchEvents(dto: SearchEventDto) {
-    return this.eventRepo.searchEvent(dto.q);
+  async searchEvents(dto: SearchEventDto) {
+    const events = await this.eventRepo.searchEvent(dto.q);
+    return this.mapEvents(events);
   }
   //conflict Day
-  async listConflict( dto: ConflictEventDto) {
+  async listConflict(
+    dto: ConflictEventDto,
+  ): Promise<ConflictEventReponseDto[]> {
     if (!dto.date) {
       throw new BadRequestException('تاریخ الزامی است');
     }
+
     const startDate = new Date(`${dto.date}T00:00:00.000Z`);
     const endDate = new Date(`${dto.date}T23:59:59.999Z`);
 
-    const events = await this.eventRepo.findDate(startDate , endDate);
-    console.log(events)
-    if(events.length === 0) {
-      throw new NotFoundException('هیچ رویداد دارای تداخلی یافت نشد');
-    }
-    events.sort((a,b)=> a.start.getTime() - b.start.getTime());
-    console.log('event : -> ', events)
-    const conflict: Event[][] = [];
-    let currentGroup: Event[] = [events[0]];
-    console.log("conflict : " ,conflict);
-    console.log("cuurrrrrrrr: " , currentGroup)
+    const events = await this.eventRepo.findDate(startDate, endDate);
 
-    for (let i = 1 ; i < events.length; i++){
-      const prev = currentGroup[currentGroup.length-1];
+    if (events.length === 0) {
+      return [];
+    }
+
+    events.sort((a, b) => a.start.getTime() - b.start.getTime());
+
+    const conflicts: Event[][] = [];
+    let currentGroup: Event[] = [events[0]];
+
+    for (let i = 1; i < events.length; i++) {
+      const prev = currentGroup[currentGroup.length - 1];
       const curr = events[i];
 
-      if(curr.start < prev.end){
+      if (curr.start < prev.end) {
         currentGroup.push(curr);
-
-      } else{
-        if(currentGroup.length > 1){
-          conflict.push([...currentGroup]);
-          currentGroup = [curr];
+      } else {
+        if (currentGroup.length > 1) {
+          conflicts.push([...currentGroup]);
         }
+        currentGroup = [curr];
       }
-
-      if(currentGroup.length > 1)
-        conflict.push([...currentGroup]);
-
-      return conflict
     }
+
+    if (currentGroup.length > 1) {
+      conflicts.push([...currentGroup]);
+    }
+
+    return this.mapConflictGroups(conflicts);
+  }
+  //response
+  private mapEvent(event: Event): EventReponseDto {
+    return {
+      id: event.id,
+      title: event.title,
+      description: event.description,
+      start: event.start,
+      end: event.end,
+    };
+  }
+
+  private mapEvents(events: Event[]): EventReponseDto[] {
+    return events.map((e) => this.mapEvent(e));
+  }
+  private mapConflictGroups(groups: Event[][]): ConflictEventReponseDto[] {
+    return groups.map((group) => ({
+      events: group.map((e) => this.mapEvent(e)),
+    }));
   }
 }
